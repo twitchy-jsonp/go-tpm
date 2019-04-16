@@ -68,8 +68,6 @@ func Pack(elts ...interface{}) ([]byte, error) {
 // marshal was attempted.
 func tryMarshal(buf io.Writer, v reflect.Value) (bool, error) {
 	t := v.Type()
-	fmt.Fprintf(os.Stderr, "tryMarshal(%v, %v): canaddr=%v, implements=%v, can_set=%v\n", t, v, v.CanAddr(),
-		t.Implements(selfMarshalerType), v.CanSet())
 	if t.Implements(selfMarshalerType) {
 		return true, v.Interface().(SelfMarshaler).TPMMarshal(buf)
 	}
@@ -106,7 +104,6 @@ func packValue(buf io.Writer, v reflect.Value) error {
 			}
 		}
 	default:
-		fmt.Fprintf(os.Stderr, "binary packing: %v\n", v.Type())
 		return binary.Write(buf, binary.BigEndian, v.Interface())
 	}
 	return nil
@@ -128,10 +125,7 @@ func packType(buf io.Writer, elts ...interface{}) error {
 // was called, along with an error returned from TPMUnmarshal.
 func tryUnmarshal(buf io.Reader, v reflect.Value) (bool, error) {
 	t := v.Type()
-	fmt.Fprintf(os.Stderr, "tryUnmarshal(%v, %v): canaddr=%v, implements=%v, can_set=%v\n", t, v, v.CanAddr(),
-		t.Implements(selfMarshalerType), v.CanSet())
-
-	if v.Type().Implements(selfMarshalerType) {
+	if t.Implements(selfMarshalerType) {
 		return true, v.Interface().(SelfMarshaler).TPMUnmarshal(buf)
 	}
 
@@ -166,7 +160,6 @@ func unpackValue(buf io.Reader, v reflect.Value) error {
 		return err
 	}
 
-	fmt.Fprintf(os.Stderr, "unpackValue(%s)\n", v.Type().String())
 	if v.Type() == handlesAreaType {
 		var numHandles uint16
 		if err := binary.Read(buf, binary.BigEndian, &numHandles); err != nil {
@@ -193,7 +186,6 @@ func unpackValue(buf io.Reader, v reflect.Value) error {
 
 	switch v.Kind() {
 	case reflect.Ptr:
-		fmt.Fprintf(os.Stderr, "dat pointer!: %T, %v\n\n", v.Elem().Interface(), v)
 		if v.IsNil() {
 			return fmt.Errorf("cannot pack nil %s", v.Type().String())
 		}
@@ -223,7 +215,6 @@ func unpackValue(buf io.Reader, v reflect.Value) error {
 func UnpackBuf(buf io.Reader, elts ...interface{}) error {
 	for _, e := range elts {
 		v := reflect.ValueOf(e)
-		fmt.Fprintf(os.Stderr, "Handling value (%v - %T): %v\n", v.Kind(), e, v)
 		if v.Kind() != reflect.Ptr {
 			return fmt.Errorf("non-pointer value %q passed to UnpackBuf", v.Type().String())
 		}
