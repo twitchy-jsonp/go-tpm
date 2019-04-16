@@ -578,7 +578,7 @@ func encodeLoadExternal(pub Public, private Private, hierarchy tpmutil.Handle) (
 		return nil, err
 	}
 
-	return tpmutil.Pack(privateBlob, publicBlob, hierarchy)
+	return tpmutil.Pack(tpmutil.U16Bytes(privateBlob), tpmutil.U16Bytes(publicBlob), hierarchy)
 }
 
 func decodeLoadExternal(in []byte) (tpmutil.Handle, []byte, error) {
@@ -1002,7 +1002,7 @@ func encodeDefineSpace(owner, handle tpmutil.Handle, ownerAuth, authVal string, 
 	if err != nil {
 		return nil, err
 	}
-	params, err := tpmutil.Pack(tpmutil.U16Bytes(authVal), publicInfo)
+	params, err := tpmutil.Pack(tpmutil.U16Bytes(authVal), tpmutil.U16Bytes(publicInfo))
 	if err != nil {
 		return nil, err
 	}
